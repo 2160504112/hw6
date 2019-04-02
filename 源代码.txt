@@ -1,0 +1,227 @@
+作业6源代码：
+
+1.
+I=imread('lena.bmp','bmp');
+subplot(3,2,1);
+imshow(I);
+title('lena原图像');
+I1=imnoise(I,'gaussian',0.2,0.01);
+subplot(3,2,2);
+imshow(I1);
+title('加入高斯噪声的lena图像(u=0.2,s^2=0.01)');
+n=5;
+h=1/n^2.*ones(n,n);
+I2=conv2(I1,h,'same');
+I2=uint8(I2);
+subplot(3,2,3);
+imshow(I2);
+title('算数均值滤波结果(5×5)');
+a=ones(n,n);
+p=size(I1);
+x1=double(I1);
+x2=x1;
+for i=1:p(1)-n+1
+    for j=1:p(2)-n+1
+        c=x1(i:i+(n-1),j:j+(n-1));
+        e=c(1,:);
+        for u=2:n
+            e=[e,c(u,:)];
+        end
+        m=median(e);
+        x2(i+(n-1)/2,j+(n-1)/2)=m;
+    end
+end
+I3=uint8(x2);
+subplot(3,2,4)
+imshow(I3);
+title('中值滤波结果');
+f=double(I1);
+F=fft2(f);
+F=fftshift(F);
+[P,Q]=size(F);
+n_butterworth=2;
+D0=75;
+for i=1:P
+    for j=1:Q
+        D(i,j)=sqrt((i-fix(P/2))^2+(j-fix(Q/2))^2);
+        H(i,j)=1/(1+(D(i,j)/D0)^(2*n_butterworth));
+        G(i,j)=H(i,j)*F(i,j);
+    end
+end
+qw=ifftshift(G);
+qw=ifft2(qw);
+qw=uint8(real(qw));
+subplot(3,2,5);
+imshow(qw);
+title('butterworth滤波');
+for i=1:P
+    for j=1:Q
+        D(i,j)=sqrt((i-fix(P/2))^2+(j-fix(Q/2))^2);
+        H(i,j)=exp(-D(i,j)^2/(2*D0^2));
+        G(i,j)=F(i,j)*H(i,j);
+    end
+end
+qw=ifftshift(G);
+qw=ifft2(qw);
+qw=uint8(real(qw));
+subplot(3,2,6);
+imshow(qw);
+title('gaussian滤波');
+
+2.
+I=imread('lena.bmp','bmp');
+subplot(3,2,1);
+imshow(I);
+title('lena原图像');
+I1=imnoise(I,'salt & pepper',0.1);
+subplot(3,2,2);
+imshow(I1);
+title('加入椒盐噪声的lena图像');
+n=5;
+h=1/n^2.*ones(n,n);
+I2=conv2(I1,h,'same');
+I2=uint8(I2);
+subplot(3,4,5);
+imshow(I2);
+title('算数均值滤波结果(5×5)');
+a=ones(n,n);
+p=size(I1);
+x1=double(I1);
+x2=x1;
+for i=1:p(1)-n+1
+    for j=1:p(2)-n+1
+        c=x1(i:i+(n-1),j:j+(n-1));
+        e=c(1,:);
+        for u=2:n
+            e=[e,c(u,:)];
+        end
+        m=median(e);
+        x2(i+(n-1)/2,j+(n-1)/2)=m;
+    end
+end
+I3=uint8(x2);
+subplot(3,4,6)
+imshow(I3);
+title('中值滤波结果');
+f=double(I1);
+F=fft2(f);
+F=fftshift(F);
+[P,Q]=size(F);
+n_butterworth=2;
+D0=75;
+for i=1:P
+    for j=1:Q
+        D(i,j)=sqrt((i-fix(P/2))^2+(j-fix(Q/2))^2);
+        H(i,j)=1/(1+(D(i,j)/D0)^(2*n_butterworth));
+        G(i,j)=H(i,j)*F(i,j);
+    end
+end
+I4=ifftshift(G);
+I4=ifft2(I4);
+I4=uint8(real(I4));
+subplot(3,4,7);
+imshow(I4);
+title('butterworth滤波');
+for i=1:P
+    for j=1:Q
+        D(i,j)=sqrt((i-fix(P/2))^2+(j-fix(Q/2))^2);
+        H(i,j)=exp(-D(i,j)^2/(2*D0^2));
+        G(i,j)=F(i,j)*H(i,j);
+    end
+end
+I5=ifftshift(G);
+I5=ifft2(I5);
+I5=uint8(real(I5));
+subplot(3,4,8);
+imshow(I5);
+title('gaussian滤波');
+
+Q1=1.5;
+Q2=-1.5;
+I1=double(I1);
+I6=imfilter(I1.^(Q1+1),fspecial('average',3))./imfilter(I1.^Q1,fspecial('average',3));
+subplot(3,2,5);
+imshow(I6,[]);
+title('Q=1.5逆均值滤波结果');
+I7=imfilter(I1.^(Q2+1),fspecial('average',3))./imfilter(I1.^Q2,fspecial('average',3));
+subplot(3,2,6);
+imshow(I7,[]);
+title('Q=-1.5逆均值滤波结果');
+
+
+3.
+I=imread('lena.bmp','bmp');
+subplot(2,3,1);
+imshow(I);
+title('lena原图像');
+t1=double(I);
+T1=fft2(t1);
+T1=fftshift(T1);
+[P,Q]=size(T1);
+a=0.1;
+b=0.1;
+T=1;
+for i=1:P
+    for j=1:Q
+        H(i,j)=(T/(pi*(i*a+j*b)))*sin(pi*(i*a+j*b))*exp(-sqrt(-1)*pi*(i*a+j*b));    
+        G(i,j)=H(i,j)*T1(i,j);
+    end
+end
+g=ifftshift(G);
+g=ifft2(g);
+g=256.*g./max(max(g));
+g=uint8(real(g));
+subplot(2,3,2);
+imshow(g);
+title('模糊lena图像');
+I1=imnoise(g,'gaussian',0,0.01);
+subplot(2,3,3);
+imshow(I1);
+title('模糊+高斯噪声的lena图像');
+x=double(I1);
+X=fft2(t1);
+G=fftshift(X);
+[P,Q]=size(G);
+a=0.1;
+b=0.1;
+T=1;
+k=0.0259
+for i=1:P
+    for j=1:Q
+        H(i,j)=(T/(pi*(i*a+j*b)))*sin(pi*(i*a+j*b))*exp(-sqrt(-1)*pi*(i*a+j*b));    
+        T1(i,j)=1/H(i,j)*(abs(H(i,j)))^2/((abs(H(i,j)))^2+k)*G(i,j);
+    end
+end
+T1=ifftshift(T1);
+t1=ifft2(T1);
+t1=256.*t1./max(max(t1));
+t1=uint8(real(t1));
+subplot(2,1,2);
+imshow(t1);
+title('维纳滤波结果');
+
+I=imread('lena.bmp','bmp');
+subplot(2,3,1);
+imshow(I);
+title('lena原图像');
+H=fspecial('motion',50,45);
+I1=imfilter(I,H,'circular','conv');
+subplot(2,3,2);
+imshow(I1);
+title('模糊后的lena图像');
+I2=imnoise(I1,'gaussian',0,0.01);
+subplot(2,3,3);
+imshow(I2);
+title('模糊+高斯噪声的lena图像');
+noise=imnoise(zeros(size(I)),'gaussian',0,0.01);
+NSR=sum(noise(:).^2)/sum(im2double(I(:)).^2);
+I3=deconvwnr(I2,H,NSR);
+subplot(2,2,3);
+imshow(I3);
+title('维纳滤波结果');
+v=0.01;
+NoisePower=v*numel(I);
+[I4,lagra]=deconvreg(I2,H,NoisePower);
+subplot(2,2,4);
+imshow(I4);
+title('约束最小二乘滤波');
